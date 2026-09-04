@@ -1,56 +1,79 @@
-name: Parallel Node Jobs
-
-on:
-  push:
-    branches:
-      - main
-
+name: project2
+on: push
 jobs:
-
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 18
 
-      - name: Install
+      - name: Cache Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key:  ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+       
+      - name: Install Dependencies
         run: npm install
 
-      - name: Build
+      - name: Build Application
         run: npm run build
 
+      - name: Artifact upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-1
+          path: |
+             package*
 
   test:
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
         with:
-          node-version: 20
-
-      - name: Install
+          node-version: 18
+          
+      - name: Cache Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key:  ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+       
+      - name: Install Dependencies
         run: npm install
 
-      - name: Test
+      - name: Run Tests
         run: npm test
 
-
-  security:
+  deploy:
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Artifact upload
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact-1
+          path: |
+             package*
+             
+      - name: Deploy Application
+        run: echo "Deploying to production server..."
 
-      - name: Security Check
-        run: echo "Security scan completed"
+
+  info:
+     runs-on: ubuntu-latest
+     steps:
+       - name: Output of the Job
+         run: echo "${{ toJson(github) }}" 
