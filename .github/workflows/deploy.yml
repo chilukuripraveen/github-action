@@ -8,7 +8,7 @@ jobs:
   # Trigger the reusable template
   call-shared-ci:
     # Syntax: {owner}/{repo}/.github/workflows/{filename}@{ref}
-    uses: chilukuripraveen/github-action/.github/workflows/enterprise-orchestrator.yml@master
+    uses: RAHAMSHAIK007/gabr1/.github/workflows/enterprise-orchestrator.yml@master
     with:
       node-version: '20'
     secrets:
@@ -17,4 +17,3 @@ jobs:
 
 
   
-
