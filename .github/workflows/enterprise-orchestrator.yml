@@ -1,79 +1,107 @@
 name: project2
-on: push
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
 jobs:
+
+  # =========================
+  # BUILD
+  # =========================
   build:
     runs-on: ubuntu-latest
+
     steps:
+
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup NodeJS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: npm
 
-      - name: Cache Dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key:  ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-       
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build Application
         run: npm run build
 
-      - name: Artifact upload
-        uses: actions/upload-artifact@v3
+      - name: Artifact Upload
+        uses: actions/upload-artifact@v4
         with:
           name: artifact-1
           path: |
-             package*
+            package.json
+            package-lock.json
+            dist/
+            build/
 
+
+  # =========================
+  # TEST
+  # =========================
   test:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup NodeJS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
-          
-      - name: Cache Dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key:  ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-       
+          cache: npm
+
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run Tests
         run: npm test
 
+
+  # =========================
+  # DEPLOY
+  # =========================
   deploy:
     needs: test
     runs-on: ubuntu-latest
 
     steps:
-      - name: Artifact upload
-        uses: actions/download-artifact@v3
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
         with:
           name: artifact-1
-          path: |
-             package*
-             
+          path: artifact
+
+      - name: Check Artifact
+        run: |
+          echo "Downloaded artifact:"
+          ls -R artifact
+
       - name: Deploy Application
-        run: echo "Deploying to production server..."
+        run: |
+          echo "Deploying to production server..."
+          echo "Deployment completed successfully"
 
 
+  # =========================
+  # INFO
+  # Runs independently
+  # =========================
   info:
-     runs-on: ubuntu-latest
-     steps:
-       - name: Output of the Job
-         run: echo "${{ toJson(github) }}" 
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Output of the Job
+        run: |
+          echo '${{ toJson(github) }}'
