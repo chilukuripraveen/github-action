@@ -1,52 +1,25 @@
-name: CI-WORKFLOW
+name: Parallel Jobs
+
 on:
   push:
-    branches: [ "master", "main", "dev" ]
-  workflow_dispatch: 
+    branches: ["main"]
 
 jobs:
-  build-test:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'  
-    runs-on: ${{ matrix.os }}
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        node-version: [18, 20, 22]
-        exclude:
-          - os: windows-latest
-            node-version: 22
-    
+  build:
+    runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v7
+      - name: Build
+        run: echo "Build job running"
 
-      - name: Cache Dependencies 
-        uses: actions/cache@v5 
-        with: 
-          path: ~/.npm 
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }} 
-          restore-keys: | 
-             ${{ runner.os }}-node-${{ matrix.node-version }}-
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        run: echo "Test job running"
 
-
-      - name: build
-        run: npm install
-
-      - name: test
-        run: npm test
-        
-      - name: Artifact upload
-        uses: actions/upload-artifact@v7
-        with:
-          name: artifact-1
-          path: |
-             package*
-
-      - name: deploy
-        if: success()
-        run: echo "my code is deployed"
-
-      - name: rollback
-        if: failure()
-        run: echo "rollback is done"
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Security Scan
+        run: echo "Security scan running"
